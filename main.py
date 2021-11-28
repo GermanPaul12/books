@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 from PIL import Image
+from streamlit.state.session_state import Value
 from template import book_template
 from plot_helper import scatterer,pies,scatter_3d,heatmap,barchart
 import copy
@@ -147,7 +148,9 @@ elif selected == 'Data Visualization':
     show_graphs = st.sidebar.checkbox('show graphs')
 
     if show_graphs:
-        graph_opt = ['scatter plots','pie charts','3D plots','correlation/heatmap']
+        df2 =copy.deepcopy(df1)
+        df2['count'] =1
+        graph_opt = ['scatter plots','pie charts','3D plots','correlation/heatmap','annual books publishings']
         figure_type = st.sidebar.selectbox('choose type of graph:',graph_opt)
         if figure_type == 'scatter plots':
             fig =scatterer(df1,title='relation between number of book pages and number of reviews',
@@ -158,7 +161,7 @@ elif selected == 'Data Visualization':
             
         elif figure_type == 'pie charts':
             #to overcome st.cache problems ,we are using copy of dataset to mutate 
-            df2 =copy.deepcopy(df1)
+            
             pie_fig = pies(df2,'pie chart','charts')
             st.plotly_chart(pie_fig)
 
@@ -174,6 +177,13 @@ elif selected == 'Data Visualization':
             fig_heat = heatmap(df1,'correlation between book feautres','correlation value')
             st.plotly_chart(fig_heat,use_container_width=True)
 
+        elif figure_type == 'annual books publishings':
+            min_col,max_col = st.columns(2)
+            min_year = min_col.number_input('starting',min_value=df2.first_published.min(),
+            max_value=df2.first_published.max(),value=2000)
+            max_year = max_col.number_input('ending',min_value=1800,max_value=2021,value=2021)
+            fig_bar = barchart(df2,min_year,max_year)
+            st.plotly_chart(fig_bar)
 
         
         

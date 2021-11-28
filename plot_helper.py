@@ -38,7 +38,6 @@ def pies(dataset,title,legend):
     Takes dataset, desirable title and legend names -> plotly pie charts
     """
     #adding column to count 
-    dataset['count'] =1
     fig = px.pie(dataset,values='count',names='rating_range')
     fig.update_layout(
     title=title,
@@ -113,5 +112,6 @@ def heatmap(df,title,legend_title):
 
 def barchart(df,min,max):
     df = df.groupby(['first_published']).count().sort_values(by='titles')
-    fig = px.bar(df[(df['first_published']>=min)&(df['first_published']<=max)],x=df.index,y='count')
+    data =df[(df.index>=min)&(df.index<=max)]
+    fig = px.bar(data,x=data.index,y='count')
     return fig
