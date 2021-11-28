@@ -1,11 +1,9 @@
 import pandas as pd
 import streamlit as st
 from PIL import Image
-import plotly.express as ex
-import plotly.graph_objects as go
-import seaborn as sns
-import matplotlib.pyplot as plt
 from template import book_template
+from plot_helper import scatterer,pies,scatter_3d,heatmap,barchart
+import copy
 how_many_books =None
 filters= None
 
@@ -18,8 +16,8 @@ logo_im = Image.open('LOGO.png')
 #### file reader, with st.cache, it makes data loading faster
 @st.cache
 def read_file(filename):
-    df = pd.read_csv(filename,dtype=object)
-    df.first_published = df.first_published.astype('int64')
+    df = pd.read_csv(filename)
+    # df.first_published = df.first_published.astype('int64')
     return df
 
 ####################### N a v b a r #################################
@@ -31,8 +29,9 @@ selected = st.sidebar.selectbox('Navigation',('Home','Book Search','Data Visuali
 #######################################################################
 ###################     H o m e   P a g e      ########################
 #######################################################################
-file1 = 'prepared_book.csv'
+file1 = 'prepared.csv'
 df1 = read_file(file1)
+
 if selected == 'Home':
     with home:
         st.markdown('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">',unsafe_allow_html=True)
@@ -131,23 +130,6 @@ elif selected == 'Book Search':
         
         raw_table = st.sidebar.checkbox('show whole list') 
         # user inputs the number of books using slider
-        if raw_table:
-            how_many_books = st.sidebar.slider('how many books to show',min_value=0,max_value=500,step=5)
-            st.sidebar.markdown("""<hr>""",unsafe_allow_html=True)
-            filter_opt = df1.columns
-            filters = st.sidebar.multiselect('what do you want to show',filter_opt)
-            if how_many_books:
-                fig = go.Figure(data=[go.Table(
-                    header = dict(values = filters,
-                            fill_color='paleturquoise',
-                            align = 'left'),
-                    cells=dict(values = [df1[i].head(how_many_books) for i in df1[filters].columns],
-                            fill_color='lavender',
-                            align='left'
-                )
-            )])
-                st.write(fig)
-    
 elif selected == 'Data Visualization':
     st.markdown('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">',unsafe_allow_html=True)
     st.markdown("""
@@ -165,9 +147,34 @@ elif selected == 'Data Visualization':
     show_graphs = st.sidebar.checkbox('show graphs')
 
     if show_graphs:
-        
-        graph_opt = []
-        figure_type = st.sidebar.multiselect('choose type of graph:',graph_opt)
+        graph_opt = ['scatter plots','pie charts','3D plots','correlation/heatmap']
+        figure_type = st.sidebar.selectbox('choose type of graph:',graph_opt)
+        if figure_type == 'scatter plots':
+            fig =scatterer(df1,title='relation between number of book pages and number of reviews',
+                    x_column='number_of_pages', x_title='number of book pages',
+                    y_column='number_of_ratings', y_title='number of reviews',
+                    color_column='rating_range',legend_title='range of rating')
+            st.plotly_chart(fig)
+            
+        elif figure_type == 'pie charts':
+            #to overcome st.cache problems ,we are using copy of dataset to mutate 
+            df2 =copy.deepcopy(df1)
+            pie_fig = pies(df2,'pie chart','charts')
+            st.plotly_chart(pie_fig)
+
+        elif figure_type == '3D plots':
+            fig_3d = scatter_3d(df1,title='3D plot',
+            x_col='number_of_pages',x_title='number of book pages',
+            y_col='number_of_reviews',y_title='reviews number',
+            z_col='first_published',z_title='average rating',
+            color='rating_range',legend_title='ratings')
+            st.plotly_chart(fig_3d)
+            
+        elif figure_type == 'correlation/heatmap':
+            fig_heat = heatmap(df1,'correlation between book feautres','correlation value')
+            st.plotly_chart(fig_heat,use_container_width=True)
+
+
         
         
      
@@ -191,15 +198,6 @@ elif selected == 'About':
                         </span>
                     </button>
                 """,unsafe_allow_html=True)
-
-        with team:
-           st.subheader('Team')
-           st.markdown("""
-            ** Saidalikhon **- Data scraping / streamlit \n
-            ** Sai **- Data visualization \n
-            ** Sohan **- preprocessing \n
-            ** Irene **- preprocessing \n
-           """)
         with tools:
             st.subheader('Tools')
             st.markdown("""
