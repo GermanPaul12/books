@@ -47,8 +47,8 @@ if selected == 'Home':
         st.markdown("""<hr>""",unsafe_allow_html=True)
 
         st.write('\n'*10)
-        st.subheader('The Best Epic Fantasy (fiction) - books collection')
-        st.image(image,'Best epic fantasy books')
+        st.subheader('The Best Business Books')
+        st.image(image,'The Best Business Books')
         
 
 
@@ -131,6 +131,13 @@ elif selected == 'Book Search':
         
         raw_table = st.sidebar.checkbox('show whole list') 
         # user inputs the number of books using slider
+        if raw_table:
+            number = st.slider(label="Please, choose how many items you wanna list",
+                           min_value=1,
+                           max_value=df1.shape[0],
+                           value=10)
+            st.dataframe(df1[['author','titles','first_published']].head(number))
+            
 elif selected == 'Data Visualization':
     st.markdown('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">',unsafe_allow_html=True)
     st.markdown("""
